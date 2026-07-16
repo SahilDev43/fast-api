@@ -42,3 +42,16 @@ def create_enrollment(
         )
 
     return data
+
+@router.get("/{student_id}")
+def get_student(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
+    student = crud.get_student(db, student_id)
+
+    if student is None:
+        raise HTTPException(
+            status_code=404,
+            details="Student not found"
+        )

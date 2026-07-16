@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas import StudentCreate
+from app.schemas import StudentCreate, StudentResponse
 from app.models import Student
 from fastapi import HTTPException
 import app.crud as crud
@@ -19,8 +19,7 @@ def create_student(
 ):
 
     new_student = Student(
-        name=student.name,
-        course=student.course
+        name=student.name
     )
 
     return crud.create_student(db, new_student)
@@ -31,7 +30,7 @@ def get_students(db: Session = Depends(get_db)):
     return crud.get_students(db)
 
 
-@router.get("/{student_id}")
+@router.get("/{student_id}", response_model=StudentResponse)
 def get_students_id(student_id: int, db: Session = Depends(get_db)):
     get_id = crud.get_students_id(db, student_id)
 

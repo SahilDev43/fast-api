@@ -28,7 +28,6 @@ def update_student(db: Session, student_id: int, updated_student: StudentCreate)
         return None
     
     student.name = updated_student.name
-    student.course = updated_student.course
 
     db.commit()
     db.refresh(student)
@@ -103,3 +102,10 @@ def create_enrollment(
     db.refresh(new_enrollment)
 
     return "success", new_enrollment
+
+def get_student(db: Session, student_id: int):
+    return(
+        db.query(Student)
+        .filter(Student.id == student_id)
+        .first()
+    )
