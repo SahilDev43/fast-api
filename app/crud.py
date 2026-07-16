@@ -31,3 +31,17 @@ def update_student(db: Session, student_id: int, updated_student: StudentCreate)
     db.commit()
     db.refresh(student)
     return student
+
+def delete_student(db: Session, student_id: int):
+    student = (
+        db.query(Student)
+        .filter(Student.id == student_id)
+        .first()
+    )
+
+    if student is None:
+        return None
+    
+    db.delete(student)
+    db.commit()
+    return student

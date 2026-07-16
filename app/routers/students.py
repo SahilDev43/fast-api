@@ -12,14 +12,6 @@ router = APIRouter(
     tags=["Students"]
 )
 
-
-# @router.get("/")
-# def get_students():
-#     return {
-#         "message": "Students Router Working"
-#     }
-
-
 @router.post("/")
 def create_student(
     student: StudentCreate,
@@ -55,3 +47,10 @@ def update_student(student_id: int, updated_student: StudentCreate, db: Session 
     if student is None:
         raise HTTPException(status_code=404, detail="Student not found")
     return student
+
+@router.delete("/{student_id}")
+def delete_student(student_id: int, db: Session = Depends(get_db)):
+    deleted_student = crud.delete_student(db, student_id)
+    if delete_student is None:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return delete_student
