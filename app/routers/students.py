@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.schemas import StudentCreate, StudentResponse
 from app.models import Student
+from app.models import Enrollment
 from fastapi import HTTPException
 import app.crud as crud
 
@@ -52,4 +53,20 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     deleted_student = crud.delete_student(db, student_id)
     if delete_student is None:
         raise HTTPException(status_code=404, detail="Student not found")
-    return delete_student
+    return deleted_student
+
+@router.get("/test/lazy")
+def test_lazy(db: Session = Depends(get_db)):
+    student = (db.query(Student).options(
+        joinedload(Student.enrollments)
+        .joinedload(Enrollment.course)
+    )
+    .first()
+    )
+
+    for enrollment in student.enrollments:
+        print(enrollment.course.title)
+
+    return {
+         "message": "Done"
+    }

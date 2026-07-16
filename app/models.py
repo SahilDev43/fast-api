@@ -8,10 +8,12 @@ class Student(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
 
     enrollments = relationship(
         "Enrollment",
-        back_populates="student"
+        back_populates="student",
+        cascade="all, delete-orphan"
     )
 
 
@@ -34,7 +36,7 @@ class Enrollment(Base):
 
     student_id = Column(
         Integer,
-        ForeignKey("students.id"),
+        ForeignKey("students.id", ondelete="CASCADE"),
         nullable=False
     )
 

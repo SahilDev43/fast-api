@@ -53,5 +53,6 @@ def get_student(
     if student is None:
         raise HTTPException(
             status_code=404,
-            details="Student not found"
+            detail="Student not found"
         )
+    return student
