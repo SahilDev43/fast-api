@@ -7,6 +7,9 @@ from app.models import Student
 from app.models import Enrollment
 from fastapi import HTTPException
 import app.crud as crud
+from app import oauth2
+from app import schemas
+from app.schemas import StudentResponse
 
 router = APIRouter(
     prefix="/students",
@@ -26,8 +29,8 @@ def create_student(
     return crud.create_student(db, new_student)
 
 
-@router.get("/")
-def get_students(db: Session = Depends(get_db)):
+@router.get("/", response_model=list[schemas.StudentResponse])
+def get_students(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
     return crud.get_students(db)
 
 

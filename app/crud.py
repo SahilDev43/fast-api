@@ -134,3 +134,18 @@ def create_user(db, user: schemas.UserCreate):
     db.refresh(db_user)
 
     return db_user
+
+def authentication_user(db, email: str, password: str):
+    user = (
+        db.query(models.User)
+        .filter(models.User.email == email)
+        .first()
+    )
+
+    if not user:
+        return None
+    
+    if not auth.verify_password(password, user.hashed_password):
+        return None
+    
+    return user
