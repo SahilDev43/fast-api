@@ -75,3 +75,23 @@ class User(Base):
         String,
         nullable=False
     )
+
+    role_id = Column(
+        Integer,
+        ForeignKey("roles.id"),
+        nullable=True
+    )
+
+    role = relationship(
+        "Role",
+        back_populates="users"
+    )
+
+class Role(Base):
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(String, nullable=False)
+
+    users = relationship("User", back_populates="role")

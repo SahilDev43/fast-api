@@ -4,6 +4,7 @@ from typing import List
 
 class StudentCreate(BaseModel):
     name: str
+    email: str
 
 
 class StudentUpdate(BaseModel):

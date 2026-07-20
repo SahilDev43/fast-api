@@ -10,6 +10,7 @@ import app.crud as crud
 from app import oauth2
 from app import schemas
 from app.schemas import StudentResponse
+from app.permissions import require_role
 
 router = APIRouter(
     prefix="/students",
@@ -23,7 +24,8 @@ def create_student(
 ):
 
     new_student = Student(
-        name=student.name
+        name=student.name,
+        email=student.email
     )
 
     return crud.create_student(db, new_student)
@@ -52,7 +54,7 @@ def update_student(student_id: int, updated_student: StudentCreate, db: Session 
     return student
 
 @router.delete("/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
+def delete_student(student_id: int, db: Session = Depends(get_db), current_user = Depends(require_role("Admin"))):
     deleted_student = crud.delete_student(db, student_id)
     if delete_student is None:
         raise HTTPException(status_code=404, detail="Student not found")
