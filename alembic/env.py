@@ -3,7 +3,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from app.database import Base
-from app.models import Student, Course, Enrollment
+from app.models import Student, Course, Enrollment, User
 
 from logging.config import fileConfig
 

@@ -3,6 +3,7 @@ from app.models import Student
 from app.schemas import StudentCreate
 from app.models import Course
 from app.models import Enrollment
+from app import models, schemas, auth
 
 
 def create_student(db: Session, student: Student):
@@ -109,3 +110,27 @@ def get_student(db: Session, student_id: int):
         .filter(Student.id == student_id)
         .first()
     )
+
+def create_user(db, user: schemas.UserCreate):
+    existing_user = (
+        db.query(models.User)
+        .filter(models.User.email == user.email)
+        .first()
+    )
+
+    if existing_user:
+        return None
+    
+    hashed_password = auth.hash_password(user.password)
+
+    db_user = models.User(
+        name=user.name,
+        email=user.email,
+        hashed_password=hashed_password
+    )
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
