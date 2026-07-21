@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.schemas import StudentCreate, StudentResponse
 from app.models import Student
 from app.models import Enrollment
-from fastapi import HTTPException
 import app.crud as crud
 from app import oauth2
 from app import schemas
@@ -20,7 +19,8 @@ router = APIRouter(
 @router.post("/")
 def create_student(
     student: StudentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("Admin"))
 ):
 
     new_student = Student(

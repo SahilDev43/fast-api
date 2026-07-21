@@ -4,7 +4,7 @@ from app.schemas import StudentCreate
 from app.models import Course
 from app.models import Enrollment
 from app import models, schemas, auth
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 
 def create_student(db: Session, student: Student):
@@ -184,3 +184,112 @@ def authentication_user(db, email: str, password: str):
         return None
 
     return user
+
+
+def get_student_courses(db: Session, course_id: int):
+    students = (
+        db.query(models.Student)
+        .join(models.Enrollment)
+        .filter(models.Enrollment.course_id == course_id)
+        .all()
+    )
+
+    return students
+
+def get_dashboard(db: Session):
+    total_students = db.query(models.Student).count()
+    total_courses = db.query(models.Course).count()
+    total_enrollments = db.query(models.Enrollment).count()
+    total_users = db.query(models.User).count()
+    student_count = func.count(models.Enrollment.student_id)
+
+    popular_course = (
+    db.query(
+        models.Course.title,
+        student_count.label("student_count")
+    )
+    .outerjoin(models.Enrollment)
+    .group_by(models.Course.id, models.Course.title)
+    .order_by(student_count.desc())
+    .first()
+    )
+
+    students_without_courses = (
+        db.query(models.Student)
+        .outerjoin(models.Enrollment, models.Enrollment.student_id == models.Student.id)
+        .filter(models.Enrollment.id.is_(None))
+        .count()        
+    )
+
+    course_without_student = (
+        db.query(models.Course)
+        .outerjoin(models.Enrollment, models.Enrollment.course_id == models.Course.id)
+        .filter(models.Enrollment.id.is_(None))
+        .count()
+    )
+
+    top_students = (
+            db.query(
+        models.Student.name.label("student_name"),
+        func.count(models.Enrollment.id).label("total_courses")
+    )
+
+        .outerjoin(models.Enrollment, models.Enrollment.student_id == models.Student.id)
+        .group_by(models.Student.id, models.Student.name)
+        .order_by(func.count(models.Enrollment.id).desc())
+        .limit(5)
+        .all()
+    )
+
+    popular_courses = (
+            db.query(
+                models.Course.title.label("course_name"),
+                student_count.label("student_count")
+            )
+            .join(
+                models.Enrollment,
+                models.Enrollment.course_id == models.Course.id
+            )
+            .group_by(
+                models.Course.id,
+                models.Course.title
+            )
+            .having(student_count > 2)
+            .all()
+        )
+
+    return {
+    "total_students": total_students,
+    "total_courses": total_courses,
+    "total_enrollments": total_enrollments,
+    "total_users": total_users,
+
+    "popular_course": (
+        {
+            "course_name": popular_course.title,
+            "student_count": popular_course.student_count,
+        }
+        if popular_course
+        else None
+    ),
+
+    "students_without_courses": students_without_courses,
+
+    "courses_without_students": course_without_student,
+
+    "top_students": [
+        {
+            "student_name": student.student_name,
+            "total_courses": student.total_courses,
+        }
+        for student in top_students
+    ],
+
+    "popular_courses": [
+        {
+            "course_name": course.course_name,
+            "student_count": course.student_count,
+        }
+        for course in popular_courses
+    ],
+}

@@ -5,6 +5,7 @@ from app.routers.students import router as student_router
 from app.routers import course
 from app.routers import enrollments
 from app.routers import users
+from app.routers import dashboard
 
 app = FastAPI()
 
@@ -17,3 +18,5 @@ app.include_router(course.router)
 app.include_router(enrollments.router)
 
 app.include_router(users.router)
+
+app.include_router(dashboard.router)

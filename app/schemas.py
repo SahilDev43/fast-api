@@ -66,3 +66,14 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class DashboardResponse(BaseModel):
+    total_student: int
+    total_courses: int
+    total_enrollments: int
+    total_users: int
+    popular_course: int
+    students_without_courses: int
+    course_without_student: int
+    top_students: int
+    popular_courses: int
