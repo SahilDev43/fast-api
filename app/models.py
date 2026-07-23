@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime
 from app.database import Base
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 
 class Student(Base):
@@ -95,3 +96,19 @@ class Role(Base):
     name = Column(String, nullable=False)
 
     users = relationship("User", back_populates="role")
+
+class Account(Base):
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    balance = Column(Float, nullable=False)
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    from_account = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    to_account = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

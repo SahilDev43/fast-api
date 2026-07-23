@@ -3,8 +3,11 @@ from app.models import Student
 from app.schemas import StudentCreate
 from app.models import Course
 from app.models import Enrollment
+from app.models import Account
 from app import models, schemas, auth
 from sqlalchemy import or_, func
+from fastapi import HTTPException
+import math
 
 
 def create_student(db: Session, student: Student):
@@ -14,8 +17,8 @@ def create_student(db: Session, student: Student):
     return student
 
 
-def get_students(db: Session, skip: int = 0, limit: int = 10, search: str = "", sort: str = "name"):
-    return (
+def get_students(db: Session, search: str = "", sort: str = "name", page: int = 1, page_size: int = 10, name: str = "", email: str = ""):
+    query = (
         db.query(models.Student)
         .filter(
             or_(
@@ -24,6 +27,24 @@ def get_students(db: Session, skip: int = 0, limit: int = 10, search: str = "", 
             )
         )
     )
+
+    filters = {
+        "name": {
+            "column": models.Student.name,
+            "value": name,
+            "operator": "ilike"
+        },
+        "email": {
+            "column": models.Student.email,
+            "value": email,
+            "operator": "ilike"
+        },
+    }
+
+    for key, filt in filters.items():
+        if filt["value"]:
+            if filt["operator"] == "ilike":
+                query = query.filter(filt["column"].ilike(f"%{filt['value']}%"))
 
     descending = sort.startswith("-")
     sort = sort.lstrip("-")
@@ -35,12 +56,26 @@ def get_students(db: Session, skip: int = 0, limit: int = 10, search: str = "", 
     else:
         query = query.order_by(column)
 
-    return (
-        query
-        .offset(skip)
-        .limit(limit)
-        .all()
+    total_records = query.count()
+
+    total_pages = math.ceil(total_records / page_size)
+
+    offset = (page - 1) * page_size
+        
+    students = (
+    query
+    .offset(offset)
+    .limit(page_size)
+    .all()
     )
+
+    return {
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_records,
+        "total_pages": total_pages,
+        "data": students
+    }
 
 
 def get_students_id(db: Session, student_id: int):
@@ -293,3 +328,47 @@ def get_dashboard(db: Session):
         for course in popular_courses
     ],
 }
+
+def create_account(db: Session, account: Account):
+    db.add(account)
+    db.commit()
+    db.refresh(account)
+    return account
+
+def transfer_money(db: Session, request: schemas.TransferRequest):
+    try:
+        sender = db.query(models.Account).filter(
+            models.Account.id == request.from_account
+        ).first()
+
+        receiver = db.query(models.Account).filter(
+            models.Account.id == request.to_account
+        ).first()
+
+        if not sender:
+            raise HTTPException(status_code=404, detail="Sender account not found")
+
+        if not receiver:
+            raise HTTPException(status_code=404, detail="Receiver account not found")
+
+        if sender.balance < request.amount:
+            raise HTTPException(status_code=400, detail="Insufficient balance")
+
+        sender.balance -= request.amount
+        receiver.balance += request.amount
+
+        transaction = models.Transaction(
+            from_account=request.from_account,
+            to_account=request.to_account,
+            amount=request.amount
+        )
+
+        db.add(transaction)
+        db.commit()
+        db.refresh(transaction)
+
+        return {"message": "Money transferred successfully"}
+
+    except Exception:
+        db.rollback()
+        raise

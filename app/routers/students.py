@@ -31,9 +31,9 @@ def create_student(
     return crud.create_student(db, new_student)
 
 
-@router.get("/", response_model=list[schemas.StudentResponse])
-def get_students(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user), search: str = "", skip: int = 0, limit: int = 10, sort: str = ""):
-    return crud.get_students(db, search=search, skip=skip, limit=limit, sort=sort)
+@router.get("/", response_model=schemas.StudentPaginationResponse)
+def get_students(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user), search: str = "", sort: str = "", page: int = 1, page_size: int = 10, name: str = "", email: str = ""):
+    return crud.get_students(db, search=search, sort=sort, page=page, page_size=page_size, name=name, email=email)
 
 
 @router.get("/{student_id}", response_model=StudentResponse)

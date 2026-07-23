@@ -77,3 +77,30 @@ class DashboardResponse(BaseModel):
     course_without_student: int
     top_students: int
     popular_courses: int
+
+class StudentPaginationResponse(BaseModel):
+    page: int
+    page_size: int
+    total_records: int
+    total_pages: int
+    data: list[StudentResponse]
+
+    class Config:
+        from_attributes = True
+
+class TransferRequest(BaseModel):
+    from_account: int
+    to_account: int
+    amount: float
+
+class AccountCreate(BaseModel):
+    name: str
+    balance: float
+
+class AccountResponse(BaseModel):
+    id: int
+    name: str
+    balance: float
+
+    class Config:
+        from_attributes = True
