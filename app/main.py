@@ -8,6 +8,7 @@ from app.routers import users
 from app.routers import dashboard
 from app.routers import bank
 from app.routers import account
+from app.routers import files
 
 app = FastAPI()
 
@@ -26,3 +27,5 @@ app.include_router(dashboard.router)
 app.include_router(bank.router)
 
 app.include_router(account.router)
+
+app.include_router(files.router)
